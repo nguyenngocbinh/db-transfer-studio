@@ -8,7 +8,7 @@ export class Db2Adapter implements DbAdapter {
   async connect(): Promise<void> {
     const dsn = `DATABASE=${this.config.database};HOSTNAME=${this.config.server};PORT=${this.config.port ?? 50000};PROTOCOL=TCPIP;UID=${this.config.user};PWD=${this.config.password};`;
     this.connection = await new Promise((resolve, reject) => {
-      ibmDb.open(dsn, (error: Error | null, connection: any) => error ? reject(error) : resolve(connection));
+      (ibmDb as any).open(dsn, (error: Error | null, connection: any) => error ? reject(error) : resolve(connection));
     });
   }
   async close(): Promise<void> {
