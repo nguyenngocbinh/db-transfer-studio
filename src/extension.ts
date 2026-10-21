@@ -104,12 +104,12 @@ const vscode=acquireVsCodeApi();let importPath='';const $=id=>document.getElemen
 const send=(command,extra={})=>vscode.postMessage({command,...extra});
 const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function render(target,result){const cols=(result.columns||[]).map(c=>typeof c==='string'?c:c.name);let html='<p>Preview: '+(result.rows||[]).length+' dòng</p><table><thead><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>';for(const row of (result.rows||[]).slice(0,20))html+='<tr>'+cols.map(c=>'<td>'+esc(row[c])+'</td>').join('')+'</tr>';$(target).innerHTML=html+'</tbody></table>'}
-$('connect').onclick=()=>send('connect',{kind:$('kind').value,server:$('server').value,database:$('database').value,port:$('port').value,user:$('user').value,password:$('password').value,trustServerCertificate:true});
+$('connect').onclick=()=>{\n  const server=$('server').value.trim(), database=$('database').value.trim(), user=$('user').value.trim();\n  if(!server||!database||!user){$('status').textContent='Vui lòng nhập Server / Host, Database và User trước khi kết nối.';return;}\n  $('connect').disabled=true;$('connect').textContent='Đang kết nối...';$('status').textContent='Đang gửi yêu cầu kết nối SQL Server...';\n  send('connect',{kind:$('kind').value,server,database,port:$('port').value,user,password:$('password').value,trustServerCertificate:true});\n};
 $('disconnect').onclick=()=>send('disconnect');$('previewQuery').onclick=()=>send('previewQuery',{query:$('query').value});
 $('exportXlsx').onclick=()=>send('export',{query:$('query').value,format:'xlsx'});$('exportParquet').onclick=()=>send('export',{query:$('query').value,format:'parquet'});
 $('pickFile').onclick=()=>send('pickImport');$('import').onclick=()=>send('import',{path:importPath,schema:$('targetSchema').value,table:$('targetTable').value,columns:$('columns').value.split(',').map(x=>x.trim()).filter(Boolean)});
 window.addEventListener('message',event=>{const m=event.data;
-if(m.type==='connected'){$('schemas').textContent='Schemas: '+m.schemas.join(', ');$('status').textContent=m.message}
+if(m.type==='connected'){$('connect').disabled=false;$('connect').textContent='Connect';$('schemas').textContent='Schemas: '+m.schemas.join(', ');$('status').textContent=m.message}
 if(m.type==='preview')render('queryPreview',m.result);
 if(m.type==='filePreview'){importPath=m.path;$('fileInfo').textContent='File: '+m.path+' | Preview '+m.preview.totalPreviewRows+' rows';$('columns').value=m.preview.columns.join(',');render('fileInfo',m.preview)}
 if(m.type==='progress')$('status').textContent=m.message+' '+Number(m.count||0).toLocaleString()+' dòng';
