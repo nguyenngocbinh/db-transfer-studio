@@ -1,0 +1,38 @@
+{
+  "name": "db-transfer-studio",
+  "displayName": "DB Transfer Studio",
+  "description": "Visual VS Code extension to preview, import, and export data between SQL Server and IBM Db2 using Excel and Parquet.",
+  "version": "0.1.0",
+  "publisher": "nguyenngocbinh",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onCommand:dbTransferStudio.open"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [{ "command": "dbTransferStudio.open", "title": "DB Transfer Studio: Open Workspace" }],
+    "configuration": {
+      "title": "DB Transfer Studio",
+      "properties": {
+        "dbTransferStudio.batchSize": { "type": "number", "default": 2000, "minimum": 100, "maximum": 10000, "description": "Rows processed per batch." }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "npm run compile && vsce package"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "ibm_db": "^3.3.0",
+    "mssql": "^11.0.1",
+    "parquetjs-lite": "^0.8.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.31.0",
+    "typescript": "^5.5.4"
+  }
+}
