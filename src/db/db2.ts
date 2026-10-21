@@ -1,4 +1,3 @@
-import ibmDb from 'ibm_db';
 import { DbAdapter, DbConfig, QueryResult } from '../types';
 
 export class Db2Adapter implements DbAdapter {
@@ -6,6 +5,10 @@ export class Db2Adapter implements DbAdapter {
   constructor(private readonly config: DbConfig) {}
 
   async connect(): Promise<void> {
+    // Load the native Db2 driver only when Db2 is selected. A native ABI mismatch
+    // must not prevent the extension from activating for SQL Server users.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const ibmDb = require('ibm_db');
     const dsn = `DATABASE=${this.config.database};HOSTNAME=${this.config.server};PORT=${this.config.port ?? 50000};PROTOCOL=TCPIP;UID=${this.config.user};PWD=${this.config.password};`;
     this.connection = await new Promise((resolve, reject) => {
       (ibmDb as any).open(dsn, (error: Error | null, connection: any) => error ? reject(error) : resolve(connection));
