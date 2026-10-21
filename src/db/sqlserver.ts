@@ -43,9 +43,12 @@ export class SqlServerAdapter implements DbAdapter {
     const result = await this.getPool().request()
       .input('previewLimit', sql.Int, Math.max(1, Math.min(1000, limit)))
       .query(`SELECT TOP (@previewLimit) * FROM (${clean}) AS preview_src`);
-    const columns = Object.keys(result.columns ?? {}).map(name => ({
+    // mssql exposes column metadata on the recordset at runtime; its IResult
+    // type does not declare a top-level "columns" property.
+    const columnMetadata = (result.recordset as any).columns ?? {};
+    const columns = Object.keys(columnMetadata).map(name => ({
       name,
-      type: String((result.columns as any)[name]?.type?.name ?? 'unknown')
+      type: String(columnMetadata[name]?.type?.name ?? 'unknown')
     }));
     return { columns, rows: result.recordset };
   }
@@ -64,7 +67,9 @@ export class SqlServerAdapter implements DbAdapter {
       if (batch.length >= batchSize) {
         request.pause();
         const current = batch; batch = [];
-        pending = pending.then(() => onBatch(current)).then(() => request.resume()).catch(error => {
+        pending = pending.then(() => onBatch(current)).then(() => {
+          request.resume();
+        }).catch(error => {
           streamError = error instanceof Error ? error : new Error(String(error));
           request.cancel();
         });
